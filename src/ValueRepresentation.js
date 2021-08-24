@@ -24,6 +24,18 @@ function readTag(stream) {
     return tag;
 }
 
+function sliceByByte(str, maxByte) {
+    if (typeof str !== "string") return;
+
+    let b, i, c;
+    for (b = i = 0; (c = str.charCodeAt(i)); ) {
+        b += c >> 7 ? 2 : 1;
+        if (b > maxByte) break;
+        i++;
+    }
+    return str.substring(0, i);
+}
+
 var binaryVRs = ["FL", "FD", "SL", "SS", "UL", "US", "AT"],
     explicitVRs = ["OB", "OW", "OF", "SQ", "UC", "UR", "UT", "UN"],
     singleVRs = ["SQ", "OF", "OW", "OB", "UN"];
@@ -471,6 +483,13 @@ class CodeString extends StringRepresentation {
     readBytes(stream, length) {
         //return this.readNullPaddedString(stream, length).trim();
         return stream.readString(length).trim();
+    }
+
+    writeBytes(stream, value, writeOptions) {
+        const val = Array.isArray(value)
+            ? value.map(str => sliceByByte(str, this.maxLength))
+            : [sliceByByte(value, this.maxLength)];
+        return super.writeBytes(stream, val, writeOptions);
     }
 }
 
