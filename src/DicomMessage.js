@@ -96,18 +96,28 @@ class DicomMessage {
             useSyntax = EXPLICIT_LITTLE_ENDIAN;
         stream.reset();
         stream.increment(128);
+
+        let mainSyntax;
         if (stream.readString(4) !== "DICM") {
-            throw new Error("Invalid a dicom file");
+            //throw new Error("Invalid a dicom file");
+            stream.reset();
+            mainSyntax = IMPLICIT_LITTLE_ENDIAN;
+        } else {
+            var el = DicomMessage.readTag(stream, useSyntax),
+                metaLength = el.values[0];
+
+            //read header buffer
+            var metaStream = stream.more(metaLength);
+
+            var metaHeader = DicomMessage.read(
+                metaStream,
+                useSyntax,
+                ignoreErrors
+            );
+            //get the syntax
+            mainSyntax = metaHeader["00020010"].Value[0];
         }
-        var el = DicomMessage.readTag(stream, useSyntax),
-            metaLength = el.values[0];
 
-        //read header buffer
-        var metaStream = stream.more(metaLength);
-
-        var metaHeader = DicomMessage.read(metaStream, useSyntax, ignoreErrors);
-        //get the syntax
-        var mainSyntax = metaHeader["00020010"].Value[0];
         mainSyntax = DicomMessage._normalizeSyntax(mainSyntax);
         var objects = DicomMessage.read(
             stream,

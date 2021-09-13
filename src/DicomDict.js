@@ -5,7 +5,7 @@ const EXPLICIT_LITTLE_ENDIAN = "1.2.840.10008.1.2.1";
 
 class DicomDict {
     constructor(meta) {
-        this.meta = meta;
+        this.meta = meta === undefined ? {} : meta;
         this.dict = {};
     }
 
