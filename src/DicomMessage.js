@@ -3,6 +3,7 @@ import { Tag } from "./Tag.js";
 import { DicomMetaDictionary } from "./DicomMetaDictionary.js";
 import { DicomDict } from "./DicomDict.js";
 import { tagFromNumbers, ValueRepresentation } from "./ValueRepresentation.js";
+import * as fflate from "fflate";
 
 const IMPLICIT_LITTLE_ENDIAN = "1.2.840.10008.1.2";
 const EXPLICIT_LITTLE_ENDIAN = "1.2.840.10008.1.2.1";
@@ -116,6 +117,15 @@ class DicomMessage {
             );
             //get the syntax
             mainSyntax = metaHeader["00020010"].Value[0];
+        }
+
+        // NOTE: Deflated Explicit VR Little Endian이면 압축 해제
+        if (mainSyntax === "1.2.840.10008.1.2.1.99") {
+            stream = new ReadBufferStream(
+                fflate.inflateSync(
+                    new Uint8Array(stream.buffer, stream.offset)
+                ).buffer
+            );
         }
 
         mainSyntax = DicomMessage._normalizeSyntax(mainSyntax);

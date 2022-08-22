@@ -574,6 +574,14 @@ const tests = {
         expect(Object.keys(dataset).length).to.equal(17)
         console.log("Finished test_custom_dictionary");
     },
+    test_read_write_for_deflated: () => {
+        expect(() => {
+            const arrayBuffer = fs.readFileSync(path.join(__dirname, 'deflated.dcm')).buffer;
+            const dicomDict = DicomMessage.readFile(arrayBuffer);
+
+            DicomMessage.readFile(dicomDict.write());
+        }).to.not.throw();
+    },
 };
 
 exports.test = async testToRun => {
